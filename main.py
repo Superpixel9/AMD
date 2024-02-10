@@ -1,12 +1,31 @@
 
+import random
 from time import sleep
 from pprint import pprint
-from random import randint
+from datetime import datetime
+# from .facebook import facebook
 
 database = {
     'youtube': {
-        'vistes': 0,
-        'ips': [],
+        'request': {
+            'ip': '',
+            'route': {'path':[], 'time': datetime},
+            'vistes': 0,
+        }
+    },
+    'instagram': {
+        'request': {
+            'ip': '',
+            'route': {'path':[], 'time': datetime},
+            'vistes': 0,
+        }
+    },
+    'facebook': {
+        'request': {
+            'ip': '',
+            'route': {'path':[], 'time': datetime},
+            'vistes': 0,
+        }
     },
     'b3l40': {
         'passthrough': {
@@ -17,10 +36,28 @@ database = {
 }
 
 # server
-def youtube(clientip):
-    database['youtube']['vistes'] += 1
-    database['youtube']['ips'].append(clientip)
+def youtube(clientip, path):
+    database['youtube']['request']['ip'] = clientip
+    database['youtube']['request']['route']['path'] = path
+    database['youtube']['request']['route']['time'] = datetime.now().strftime("%m/%d/%Y-%H:%M:%S")
+    database['youtube']['request']['vistes'] += 1
     return 'Youtube'
+
+# server
+def instagram(clientip, path):
+    database['instagram']['request']['ip'] = clientip
+    database['instagram']['request']['route']['path'] = path
+    database['instagram']['request']['route']['time'] = datetime.now().strftime("%m/%d/%Y-%H:%M:%S")
+    database['instagram']['request']['vistes'] += 1
+    return 'Instagram'
+
+# server
+def facebook(clientip, path):
+    database['facebook']['request']['ip'] = clientip
+    database['facebook']['request']['route']['path'] = path
+    database['facebook']['request']['route']['time'] = datetime.now().strftime("%m/%d/%Y-%H:%M:%S")
+    database['facebook']['request']['vistes'] += 1
+    return 'Facebook'
 
 # nodes in between
 def b2l30():
@@ -37,7 +74,7 @@ def client(ip):
 def bp(size, max_latency):
     # do some calcu. to find the best path possable
     # [client, b3l40, b2l30, server]
-    x = randint(-1, 2)
+    x = random.randint(-1, 2)
 
     if x == 0:
         return [b3l40()]
@@ -67,10 +104,10 @@ def request(source='', dist=youtube, size=3, max_latency=100):
     # delay
     sleep(cost['latency'] * 0.01)
 
-    print(f'{source} ... {cost} ... {dist(source)}')
+    print(f'{source} ... {cost} ... {dist(source, path_list)}')
 
 for i in range(10):
-    request('192.168.0.1', youtube, 10, 35)
+    request('192.168.0.1', random.choice([youtube, instagram, facebook]), 10, 35)
 
 pprint(database)
 
