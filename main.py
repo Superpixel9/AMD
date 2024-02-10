@@ -1,35 +1,80 @@
 
-import igraph as ig
-import leidenalg as la
-import pandas as pd
+from time import sleep
 from pprint import pprint
+from random import randint
 
-RES=1
-# RES=0.01
-# RES=0.001
+database = {
+    'youtube': {
+        'vistes': 0,
+        'ips': [],
+    },
+    'b3l40': {
+        'passthrough': {
+            'ip': '',
+            'vistes': 0,
+        }
+    }
+}
 
-data_files = {'bio_data_file':'./data/bio_50_000.csv'}
+# server
+def youtube(clientip):
+    database['youtube']['vistes'] += 1
+    database['youtube']['ips'].append(clientip)
+    return 'Youtube'
 
-for filename, filepath in data_files.items():
+# nodes in between
+def b2l30():
+    return [2, 30]
 
-    # get data from CSV file format
-    data= pd.read_csv(filepath, low_memory=False)
-    data_frame = pd.DataFrame(data, columns=['Source', 'Target'])
+def b3l40():
+    # return 'Bandwith 3 mb and  Latency 40 ms'
+    return [3, 40]
 
-    G = ig.Graph.TupleList(data_frame.values, weights=False)
+# client
+def client(ip):
+    return f'Device{ip}'
 
-    partition = la.find_partition(G, la.CPMVertexPartition, resolution_parameter=RES)
+def bp(size, max_latency):
+    # do some calcu. to find the best path possable
+    # [client, b3l40, b2l30, server]
+    x = randint(-1, 2)
 
-    # to access graph cliques use `partition.graph.cliques()`
-    print(f'{filename} Cliques : ')
-    pprint(partition.graph.cliques())
+    if x == 0:
+        return [b3l40()]
+    elif x == 1:
+        return [b3l40(), b2l30()]
+    return [b2l30()]
 
-    # print CPM value
-    print(f'{filename} CPM of this partition: ', partition.q)
 
-    pm = ig.Graph.community_leiden(G, objective_function="modularity", resolution=1)
-    pm = la.find_partition(G, la.ModularityVertexPartition)
-    print("Modularity of this partition: ", ig.Graph.modularity(G, pm), '\n')
+def request(source='', dist=youtube, size=3, max_latency=100):
 
-    ig.plot(partition).save(f'{filename}-Leiden_with_CPM.png')
+    """
+    distnation  : server
+    size        : estmiated requested data size in mb
+    max_latency : max latency allowed for user experience
+    """
+
+    client(source)
+
+    path_list = bp(size, max_latency)
+
+    cost = {'bandwith':0, 'latency':0}
+
+    for p in path_list:
+        cost['bandwith'] += p[0]
+        cost['latency'] += p[1]
+
+    # delay
+    sleep(cost['latency'] * 0.01)
+
+    print(f'{source} ... {cost} ... {dist(source)}')
+
+for i in range(10):
+    request('192.168.0.1', youtube, 10, 35)
+
+pprint(database)
+
+
+
+
 
