@@ -9,21 +9,21 @@ database = {
     'youtube': {
         'request': {
             'ip': '',
-            'route': {'path':[], 'time': datetime},
+            'requests': [],
             'vistes': 0,
         }
     },
     'instagram': {
         'request': {
             'ip': '',
-            'route': {'path':[], 'time': datetime},
+            'requests': [],
             'vistes': 0,
         }
     },
     'facebook': {
         'request': {
             'ip': '',
-            'route': {'path':[], 'time': datetime},
+            'requests': [],
             'vistes': 0,
         }
     },
@@ -35,28 +35,24 @@ database = {
     }
 }
 
+def serverlog(name, clientip, path):
+    database[name]['request']['ip'] = clientip
+    database[name]['request']['requests'].append([clientip, path, datetime.now().strftime("%Y/%m/%d-%H:%M:%S")])
+    database[name]['request']['vistes'] += 1
+
 # server
 def youtube(clientip, path):
-    database['youtube']['request']['ip'] = clientip
-    database['youtube']['request']['route']['path'] = path
-    database['youtube']['request']['route']['time'] = datetime.now().strftime("%m/%d/%Y-%H:%M:%S")
-    database['youtube']['request']['vistes'] += 1
+    serverlog('youtube', clientip, path)
     return 'Youtube'
 
 # server
 def instagram(clientip, path):
-    database['instagram']['request']['ip'] = clientip
-    database['instagram']['request']['route']['path'] = path
-    database['instagram']['request']['route']['time'] = datetime.now().strftime("%m/%d/%Y-%H:%M:%S")
-    database['instagram']['request']['vistes'] += 1
+    serverlog('instagram', clientip, path)
     return 'Instagram'
 
 # server
 def facebook(clientip, path):
-    database['facebook']['request']['ip'] = clientip
-    database['facebook']['request']['route']['path'] = path
-    database['facebook']['request']['route']['time'] = datetime.now().strftime("%m/%d/%Y-%H:%M:%S")
-    database['facebook']['request']['vistes'] += 1
+    serverlog('facebook', clientip, path)
     return 'Facebook'
 
 # nodes in between
@@ -74,13 +70,7 @@ def client(ip):
 def bp(size, max_latency):
     # do some calcu. to find the best path possable
     # [client, b3l40, b2l30, server]
-    x = random.randint(-1, 2)
-
-    if x == 0:
-        return [b3l40()]
-    elif x == 1:
-        return [b3l40(), b2l30()]
-    return [b2l30()]
+    return random.choice([[b3l40()], [b3l40(), b2l30()], [b2l30()]])
 
 
 def request(source='', dist=youtube, size=3, max_latency=100):
