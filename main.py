@@ -42,14 +42,21 @@ DATABASE = {
             'vistes': 0,
         }
     },
-    'Twitter': {
+    'twitter': {
         'request': {
             'ip': '',
             'requests': [],
             'vistes': 0,
         }
     },
-    'Reddit': {
+    'reddit': {
+        'request': {
+            'ip': '',
+            'requests': [],
+            'vistes': 0,
+        }
+    },
+    'cloudflare': {
         'request': {
             'ip': '',
             'requests': [],
@@ -77,6 +84,21 @@ def instagram(clientip, path):
 def facebook(clientip, path):
     serverlog('facebook', clientip, path)
     return 'Facebook'
+
+# server
+def twitter(clientip, path):
+    serverlog('twitter', clientip, path)
+    return 'Twitter'
+
+# server
+def reddit(clientip, path):
+    serverlog('reddit', clientip, path)
+    return 'Reddit'
+
+# server
+def cloudflare(clientip, path):
+    serverlog('cloudflare', clientip, path)
+    return 'Cloudflare'
 
 # nodes in between
 def b2l30():
@@ -208,8 +230,9 @@ map(tree=NETWORK_TREE)
 
 for i in range(50):
     service = random.choice(SERVICE_TYPES)
+    server = random.choice([youtube, instagram, facebook, twitter, reddit, cloudflare])
     print(f'Need good {service}')
-    client('192.168.0.1', random.choice(SERVICE_TYPES), random.choice([youtube, instagram, facebook]), 10, 35)
+    client('192.168.0.1', random.choice(SERVICE_TYPES), server, 10, 35)
 
 # pprint(DATABASE)
 pprint(COST)
