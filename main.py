@@ -5,14 +5,15 @@ from pprint import pprint
 from datetime import datetime
 import matplotlib.pyplot as plt
 
-# from .facebook import facebook
+import threading
 
+# from .facebook import facebook
 
 COST = {
     'raw':[],
 }
 
-SERVICE_TYPES = ['bandwidth', 'latency', None]
+SERVICE_TYPES = ['bandwidth', 'latency', 'min_bandwidth', 'min_latency', 'any']
 
 DATABASE = {
     'youtube': {
@@ -219,25 +220,46 @@ def client(source='', service_type=None, dist=youtube, size=3, max_latency=100):
 
     cost = bp(service_type, size, max_latency)
 
-    # delay
-    sleep(cost[2] * 0.001)
+    bandwidth = cost[1]
+    latency = cost[2]
+    distenation = dist(source, cost[0])
 
-    print(f'{source} ... BW:{cost[1]}|L:{cost[2]} ... {dist(source, cost[0])}')
+    # delay
+    sleep(cost[2] * 0.01)
+
+    with open('requests.csv', '+a') as req:
+        req.write(f'{source},{bandwidth},{latency},{distenation},{service_type}\n')
+        req.close()
+
+    print(f'Need {service_type}\n{source} ... BW:{bandwidth}|L:{latency} ... {distenation}\n')
 
 
 # start mapping the network tree
 map(tree=NETWORK_TREE)
 
-for i in range(50):
-    service = random.choice(SERVICE_TYPES)
-    server = random.choice([youtube, instagram, facebook, twitter, reddit, cloudflare])
-    print(f'Need good {service}')
-    client('192.168.0.1', random.choice(SERVICE_TYPES), server, 10, 35)
+# for i in range(50):
+#     service = random.choice(SERVICE_TYPES)
+#     server = random.choice([youtube, instagram, facebook, twitter, reddit, cloudflare])
+#
+#     # create request
+#     threading.Thread(target=client, args=('192.168.0.1', random.choice(SERVICE_TYPES), server, 10, 35)).start()
+
+for ip in range(2, 7):
+    for req in range(10):
+        service = random.choice(SERVICE_TYPES)
+        server = random.choice([youtube, instagram, facebook, twitter, reddit, cloudflare])
+
+        # create request
+        threading.Thread(target=client, args=(f'192.168.0.{ip}', service, server, 10, 35)).start()
 
 # pprint(DATABASE)
-pprint(COST)
+# pprint(COST)
 
 
+# open csv file
+with open('requests.csv', '+w') as req:
+    req.write(f'source,bandwidth,latency,distenation,community\n')
+    req.close()
 
 # Get service names and their corresponding number of requests, bandwidth, and latency
 services = []
