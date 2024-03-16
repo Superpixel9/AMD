@@ -4,6 +4,7 @@ from time import sleep
 from pprint import pprint
 from datetime import datetime
 import matplotlib.pyplot as plt
+from dataclasses import dataclass
 
 import threading
 
@@ -13,7 +14,21 @@ COST = {
     'raw':[],
 }
 
+@dataclass
+class PathHit:
+    pathhit = {'bandwidth':0, 'latency':0,}
+    b_hit = 0
+    l_hit = 0
+
 SERVICE_TYPES = ['bandwidth', 'latency', 'min_bandwidth', 'min_latency', 'any']
+
+COMM = {
+    'community1': [],
+    'community2': [],
+    'community3': [],
+    'community4': [],
+    'community5': [],
+}
 
 DATABASE = {
     'youtube': {
@@ -186,7 +201,7 @@ def map(tree=NETWORK_TREE):
         bandwidth = 0
         latency = 0
 
-    COST['bandwith_sorted'] = sortpaths(COST['raw'], 'bandwidth')
+    COST['bandwidth_sorted'] = sortpaths(COST['raw'], 'bandwidth')
     COST['latency_sorted'] = sortpaths(COST['raw'], 'latency')
 
 def bp(service_type, size, max_latency):
@@ -198,11 +213,25 @@ def bp(service_type, size, max_latency):
     #                       [b2l30()]])
 
     if service_type == 'bandwidth':
-        return COST['bandwith_sorted'][0]
+        if PathHit.pathhit['bandwidth'] <= 10:
+            PathHit.pathhit['bandwidth'] += 1
+            return COST['bandwidth_sorted'][PathHit.b_hit]
+        else:
+            PathHit.b_hit += 1
+            PathHit.pathhit['bandwidth'] = 0
+            return COST['bandwidth_sorted'][PathHit.b_hit]
+
     elif service_type == 'latency':
+        if PathHit.pathhit['latency'] <= 10:
+            PathHit.pathhit['latency'] += 1
+            return COST['latency_sorted'][PathHit.l_hit]
+        else:
+            PathHit.l_hit += 1
+            PathHit.pathhit['latency'] = 0
+            return COST['latency_sorted'][PathHit.l_hit]
         return COST['latency_sorted'][0]
     else:
-        return COST['bandwith_sorted'][0]
+        return COST['bandwidth_sorted'][0]
 
 def request(ip):
     return f'Device{ip}'
@@ -223,6 +252,18 @@ def client(source='', service_type=None, dist=youtube, size=3, max_latency=100):
     bandwidth = cost[1]
     latency = cost[2]
     distenation = dist(source, cost[0])
+
+    if service_type == 'bandwidth':
+        if source not in COMM['community1'] and len(COMM['community1']) < 3: COMM['community1'].append(source)
+    elif service_type == 'latency':
+        if source not in COMM['community2'] and len(COMM['community2']) < 3: COMM['community2'].append(source)
+    elif service_type == 'min_bandwidth':
+        if source not in COMM['community3'] and len(COMM['community3']) < 3: COMM['community3'].append(source)
+    elif service_type == 'min_latency':
+        if source not in COMM['community4'] and len(COMM['community4']) < 3: COMM['community4'].append(source)
+    else:
+        if source not in COMM['community5'] and len(COMM['community5']) < 3: COMM['community5'].append(source)
+
 
     # delay
     sleep(cost[2] * 0.01)
@@ -285,3 +326,5 @@ for path in NETWORK_TREE:
     paths_bandwidth.append(bandwidth)
     paths_latency.append(latency)
 
+sleep(3)
+print(COMM)
