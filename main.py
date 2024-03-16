@@ -263,21 +263,3 @@ for path in NETWORK_TREE:
     paths_bandwidth.append(bandwidth)
     paths_latency.append(latency)
 
-# Plot each request
-plt.figure(figsize=(10, 6))
-for service, data in DATABASE.items():
-    if 'request' in data:
-        # Extract bandwidth and latency values for the path taken by the request
-        bandwidth = paths_bandwidth[services.index(service)]
-        latency = paths_latency[services.index(service)]
-        # Plot the request with bandwidth and latency as coordinates
-        plt.scatter(bandwidth, latency, label=service, s=data['request']['vistes']*10)  # Adjust the size of the point based on the number of requests
-        plt.text(bandwidth, latency, service, fontsize=8, ha='right', va='bottom')
-
-plt.xlabel('Bandwidth')
-plt.ylabel('Latency')
-plt.title('Bandwidth vs Latency for Each Request')
-plt.legend()
-plt.grid(True)
-plt.tight_layout()
-plt.show()
